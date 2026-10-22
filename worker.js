@@ -6,6 +6,13 @@ const SEED = [
     href: "/ku",
     builtin: true,
   },
+  {
+    id: "ishker-jolu",
+    title: "Ишкер жолу",
+    description: "Путь предпринимателя: роль, барьеры и маршрут в матрице МППД.",
+    href: "/ishker-jolu",
+    builtin: true,
+  },
 ];
 
 const COOKIE = "sadmae_admin";
@@ -20,6 +27,9 @@ export default {
     }
     if (url.pathname === "/ku" || url.pathname === "/ku/") {
       return env.ASSETS.fetch(new Request(new URL("/ku/index.html", url), request));
+    }
+    if (url.pathname === "/ishker-jolu" || url.pathname === "/ishker-jolu/") {
+      return env.ASSETS.fetch(new Request(new URL("/ishker-jolu/index.html", url), request));
     }
     if (url.pathname === "/admin" || url.pathname === "/admin/") return admin(request, env);
     if (url.pathname === "/" || url.pathname === "/index.html") return home(env);
@@ -133,8 +143,9 @@ async function loadProjects(env) {
   if (!env.PROJECTS) return SEED.map((project) => ({ ...project }));
   const stored = await env.PROJECTS.get("list", "json");
   const projects = Array.isArray(stored) ? stored.filter(validStored) : [];
-  const withoutKu = projects.filter((project) => project.id !== "ku");
-  return [{ ...SEED[0] }, ...withoutKu];
+  const builtinIds = new Set(SEED.map((project) => project.id));
+  const rest = projects.filter((project) => !builtinIds.has(project.id));
+  return [...SEED.map((project) => ({ ...project })), ...rest];
 }
 
 async function saveProjects(env, projects) {
