@@ -24,3 +24,24 @@ python3 -m venv .venv
 - Кривая **π(M)** показывает вклад, если выручка меняется как `M` в степени `b`.
 
 Кнопка «Пример Айнуры» подставляет эталонные данные кофейни. Тексты переключаются между русским и кыргызским. Сводка скачивается в CSV или PDF.
+
+## Сайт sadmae.app
+
+Главная и панель живут в `worker.js`. Калькулятор — статические файлы в `public/ku` и открывается по адресу `/ku`.
+
+Локально:
+
+```bash
+npx wrangler dev
+```
+
+Пароль панели берётся из `.dev.vars` (`ADMIN_PASSWORD`, `AUTH_SECRET`). Этот файл не коммитится. Список разработок хранится в KV `PROJECTS`. Перед первым выкладом:
+
+```bash
+npx wrangler kv namespace create PROJECTS
+npx wrangler secret put ADMIN_PASSWORD
+npx wrangler secret put AUTH_SECRET
+npx wrangler deploy
+```
+
+В `wrangler.toml` у привязки `PROJECTS` должен стоять id созданного namespace. Маршруты `www.sadmae.app` и `sadmae.app` включают домен; адрес без `www` перенаправляется на `www`.

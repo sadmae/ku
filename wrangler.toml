@@ -1,7 +1,25 @@
-name = "ku"
+name = "sadmae"
 main = "worker.js"
 compatibility_date = "2026-10-22"
+workers_dev = true
+
+[[routes]]
+pattern = "www.sadmae.app"
+custom_domain = true
+
+[[routes]]
+pattern = "sadmae.app"
+custom_domain = true
 
 [assets]
 directory = "./public"
 binding = "ASSETS"
+html_handling = "none"
+not_found_handling = "none"
+run_worker_first = true
+
+# Namespace id is filled in at deploy (`wrangler kv namespace create PROJECTS`).
+# Local `wrangler dev` uses this placeholder and .dev.vars.
+[[kv_namespaces]]
+binding = "PROJECTS"
+id = "00000000000000000000000000000000"

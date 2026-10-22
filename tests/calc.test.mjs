@@ -8,7 +8,7 @@ import {
   exampleProfile,
   optimalMarketingSpend,
   contributionProfit,
-} from "../public/calc.js";
+} from "../public/ku/calc.js";
 
 const names = ["Администратор кофейни", "Менеджер по продажам", "Шеф-повар", "Основной поставщик", "Печь"];
 const optNames = ["Надбавка +500 сом/день", "Временный админ через агентство", "Вернуть менеджера, админа нет"];

@@ -5,3 +5,5 @@ __pycache__/
 .streamlit/secrets.toml
 .netlify
 .wrangler/
+.dev.vars
+.dev.vars.*
