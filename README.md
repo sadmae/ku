@@ -35,13 +35,12 @@ python3 -m venv .venv
 npx wrangler dev
 ```
 
-Пароль панели берётся из `.dev.vars` (`ADMIN_PASSWORD`, `AUTH_SECRET`). Этот файл не коммитится. Список разработок хранится в KV `PROJECTS`. Перед первым выкладом:
+Пароль панели берётся из `.dev.vars` (`ADMIN_PASSWORD`, `AUTH_SECRET`). Этот файл не коммитится. Список разработок хранится в KV `PROJECTS` (id уже указан в `wrangler.toml`). Перед выкладом задайте секреты, если их ещё нет:
 
 ```bash
-npx wrangler kv namespace create PROJECTS
 npx wrangler secret put ADMIN_PASSWORD
 npx wrangler secret put AUTH_SECRET
 npx wrangler deploy
 ```
 
-В `wrangler.toml` у привязки `PROJECTS` должен стоять id созданного namespace. Маршруты `www.sadmae.app` и `sadmae.app` включают домен; адрес без `www` перенаправляется на `www`.
+Маршруты `www.sadmae.app` и `sadmae.app` включают домен; адрес без `www` перенаправляется на `www`.

@@ -1,4 +1,5 @@
 name = "sadmae"
+account_id = "e4d83991d6d12186ea8ae4f0b4477c0c"
 main = "worker.js"
 compatibility_date = "2026-10-22"
 workers_dev = true
@@ -18,8 +19,6 @@ html_handling = "none"
 not_found_handling = "none"
 run_worker_first = true
 
-# Namespace id is filled in at deploy (`wrangler kv namespace create PROJECTS`).
-# Local `wrangler dev` uses this placeholder and .dev.vars.
 [[kv_namespaces]]
 binding = "PROJECTS"
-id = "00000000000000000000000000000000"
+id = "29fb2ee2e5184d0c8d5f87b09d1e8118"
