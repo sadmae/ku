@@ -3,6 +3,7 @@ account_id = "e4d83991d6d12186ea8ae4f0b4477c0c"
 main = "worker.js"
 compatibility_date = "2026-10-22"
 workers_dev = true
+preview_urls = true
 
 [[routes]]
 pattern = "www.sadmae.app"
