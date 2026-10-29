@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/ku/">
+<title>Калькулятор устойчивости бизнеса</title>
+<style>
+  :root { --g:#1a7f4b; --y:#b7791f; --r:#c0392b; --bg:#f5f6f8; --ink:#1f2933; --muted:#6b7785; --navy:#12263f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  .layout { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+  aside { background: #fff; padding: 16px; border-right: 1px solid #e5e8ed; }
+  aside h2 { margin: 14px 0 8px; font-size: 14px; }
+  main { padding: 16px 18px 40px; max-width: 1100px; }
+  .hero { background: var(--navy); color: #fff; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  .hero h1 { margin: 0; font-size: 22px; }
+  .hero p { margin: 6px 0 0; color: #b8c4d6; font-size: 14px; }
+  .hero a { color: #d6e2f2; font-size: 13px; }
+  .lang { display: flex; gap: 6px; margin-bottom: 10px; }
+  button, .btn { border: 0; background: var(--navy); color: #fff; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
+  button.alt, .btn.alt { background: #e3e8ef; color: var(--ink); }
+  button.on { outline: 2px solid var(--navy); }
+  .lang button { background: transparent; color: var(--navy); border: 1px solid #c5ccd6; }
+  .lang button.on { background: var(--navy); color: #fff; }
+  .rowbtns { display: flex; gap: 8px; margin-bottom: 12px; }
+  .rowbtns button { flex: 1; }
+  label { display: block; font-size: 13px; font-weight: 650; margin: 10px 0 0; }
+  label small, .note, caption { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; font-size: 12px; }
+  input, select { width: 100%; margin-top: 4px; padding: 8px; border: 1px solid #c5ccd6; border-radius: 6px; font-size: 14px; background: #fff; }
+  .check { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+  .check input { width: auto; margin: 0; }
+  details { margin-top: 12px; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  nav button { background: #dfe4ea; color: var(--ink); }
+  nav button.on { background: var(--navy); color: #fff; }
+  section { display: none; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px #0001; }
+  section.on { display: block; }
+  .kpis { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 12px; }
+  .card { flex: 1; min-width: 140px; background: #f8fafc; border-radius: 10px; padding: 12px; border-left: 5px solid #9aa5b1; }
+  .card b { display: block; font-size: 22px; }
+  .card span { font-size: 12px; color: var(--muted); }
+  .g { border-color: var(--g); } .y { border-color: var(--y); } .r { border-color: var(--r); }
+  .msg { padding: 10px 12px; border-radius: 8px; margin: 8px 0; line-height: 1.45; }
+  .msg.g { background: #e6f4ec; } .msg.y { background: #fdf3dc; } .msg.r { background: #fbe7e4; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+  th, td { padding: 6px; border-bottom: 1px solid #e5e8ed; text-align: left; vertical-align: middle; }
+  td input, td select { margin: 0; }
+  .bar { position: relative; height: 28px; background: #e5e8ed; border-radius: 14px; margin: 18px 0 8px; }
+  .zone { position: absolute; top: 0; height: 100%; background: #bfe3cd; border-radius: 14px; }
+  .dot { position: absolute; top: -4px; width: 6px; height: 36px; background: var(--navy); border-radius: 3px; }
+  .hbar { height: 18px; border-radius: 8px; margin: 4px 0; min-width: 2px; }
+  svg { width: 100%; height: auto; background: #fff; }
+  .hidden { display: none; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #e5e8ed; } }
+  @media print {
+    aside, nav, .rowbtns, .no-print { display: none !important; }
+    .layout { display: block; }
+    section { display: block !important; box-shadow: none; margin-bottom: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="lang">
+      <button id="lang-ru" type="button">РУС</button>
+      <button id="lang-ky" type="button">КЫР</button>
+    </div>
+    <div class="rowbtns">
+      <button id="example" type="button"></button>
+      <button id="clear" class="alt" type="button"></button>
+    </div>
+    <label class="check"><input id="two" type="checkbox"><span data-i18n="two"></span></label>
+    <label id="lab-r"><span data-i18n="l_R"></span><small data-i18n="h_R"></small><input id="revenue" type="number" min="0" step="10000"></label>
+    <label id="lab-r2" class="hidden"><span data-i18n="l_R2"></span><input id="revenue2" type="number" min="0" step="10000"></label>
+    <p id="rev-total" class="note"></p>
+    <label><span data-i18n="l_m"></span><small data-i18n="h_m"></small><input id="margin" type="number" min="0" max="100" step="0.5"></label>
+    <p class="note" data-i18n="h_M"></p>
+    <label><span data-i18n="l_payroll"></span><input id="payroll" type="number" min="0" step="1000"></label>
+    <label><span data-i18n="l_comm"></span><input id="commissions" type="number" min="0" step="1000"></label>
+    <label><span data-i18n="l_ads"></span><input id="advertising" type="number" min="0" step="1000"></label>
+    <p id="m-total" class="note"></p>
+    <label><span data-i18n="l_N"></span><small data-i18n="h_N"></small><input id="customers" type="number" min="0" step="1"></label>
+    <label><span data-i18n="l_c"></span><small data-i18n="h_c"></small><input id="churn" type="number" min="0" max="100" step="0.5"></label>
+    <label><span data-i18n="l_cac"></span><small data-i18n="h_cac"></small><input id="cac" type="number" min="0" step="100"></label>
+    <label><span data-i18n="l_b"></span><small data-i18n="h_b"></small><input id="elasticity" type="range" min="0.1" max="0.6" step="0.01"></label>
+    <p id="b-val" class="note"></p>
+    <details>
+      <summary data-i18n="helper_t"></summary>
+      <label><span data-i18n="e_R1"></span><input id="eR1" type="number" min="0" step="1000"></label>
+      <label><span data-i18n="e_R2"></span><input id="eR2" type="number" min="0" step="1000"></label>
+      <label><span data-i18n="e_M1"></span><input id="eM1" type="number" min="0" step="1000"></label>
+      <label><span data-i18n="e_M2"></span><input id="eM2" type="number" min="0" step="1000"></label>
+      <p><button id="calc-b" class="alt" type="button"></button></p>
+      <p id="b-note" class="note"></p>
+    </details>
+    <label><span data-i18n="l_ns"></span><small data-i18n="h_ns"></small><input id="nodeSpend" type="number" min="0" step="1000"></label>
+  </aside>
+  <main>
+    <div class="hero">
+      <a href="/">sadmae.app</a>
+      <h1 id="title"></h1>
+      <p id="sub"></p>
+    </div>
+    <div id="issues"></div>
+    <div id="strip" class="kpis"></div>
+    <nav id="tabs"></nav>
+    <section id="s0" class="on"></section>
+    <section id="s1"></section>
+    <section id="s2"></section>
+    <section id="s3"></section>
+  </main>
+</div>
+<script type="module">
+import {
+  assessNodes, assessOptions, contributionProfit, demandMetrics, estimateElasticity,
+  exampleProfile, marketingSpend, optimalMarketingSpend, profitCurve, totalRevenue, validateBusiness,
+} from "./calc.js";
+
+const i18n = await fetch("./i18n.json").then((response) => response.json());
+const $ = (id) => document.getElementById(id);
+const esc = (value) => String(value).replace(/[&<>"']/g, (ch) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[ch]));
+const fmtInt = (value) => Number.isFinite(value) ? Math.round(value).toLocaleString("ru-RU") : "—";
+const fmtPct = (value) => Number.isFinite(value) ? (value * 100).toFixed(1).replace(".", ",") + "%" : "—";
+const fmtPb = (value) => !Number.isFinite(value) ? (value === Infinity ? "∞" : "—") : value.toFixed(1).replace(".", ",");
+const t = (key, vars = {}) => String((i18n[state.lang] || i18n.ru)[key] ?? key).replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? "");
+
+const state = { lang: "ru", tab: 0, nodes: [], options: [] };
+
+function boot() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("ku-web") || "null"); } catch { saved = null; }
+  if (saved?.revenue != null) Object.assign(state, saved);
+  else loadExample(false);
+  $("lang-ru").onclick = () => setLang("ru");
+  $("lang-ky").onclick = () => setLang("ky");
+  $("example").onclick = () => loadExample(true);
+  $("clear").onclick = () => clearAll();
+  $("calc-b").onclick = applyB;
+  $("two").onchange = () => { $("lab-r2").classList.toggle("hidden", !$("two").checked); refresh(); };
+  for (const id of ["revenue","revenue2","margin","payroll","commissions","advertising","customers","churn","cac","elasticity","nodeSpend","eR1","eR2","eM1","eM2"]) {
+    $(id).addEventListener("input", refresh);
+  }
+  writeInputs();
+  paintCopy();
+  refresh();
+}
+
+function loadExample(persist) {
+  const pack = i18n[state.lang];
+  const sample = exampleProfile(pack.exn, pack.exo);
+  state.forceEditors = true;
+  Object.assign(state, {
+    two: false,
+    revenue: sample.business.revenue,
+    revenue2: 0,
+    margin: sample.business.marginPct,
+    payroll: sample.business.salesPayroll,
+    commissions: sample.business.commissions,
+    advertising: sample.business.advertising,
+    customers: sample.business.customers,
+    churn: sample.business.churnPct,
+    cac: sample.business.cac,
+    elasticity: sample.business.elasticity,
+    nodeSpend: sample.business.nodeSpend,
+    nodes: sample.nodes,
+    options: sample.options,
+  });
+  $("b-note").textContent = "";
+  if (persist) writeInputs();
+  if (persist) refresh();
+}
+
+function clearAll() {
+  state.forceEditors = true;
+  Object.assign(state, {
+    two: false, revenue: 0, revenue2: 0, margin: 0, payroll: 0, commissions: 0, advertising: 0,
+    customers: 0, churn: 0, cac: 0, elasticity: 0.3, nodeSpend: 0, nodes: [], options: [],
+  });
+  for (const id of ["eR1","eR2","eM1","eM2"]) $(id).value = "";
+  $("b-note").textContent = "";
+  writeInputs();
+  refresh();
+}
+
+function writeInputs() {
+  $("two").checked = !!state.two;
+  $("lab-r2").classList.toggle("hidden", !state.two);
+  const fields = {
+    revenue: state.revenue, revenue2: state.revenue2, margin: state.margin, payroll: state.payroll,
+    commissions: state.commissions, advertising: state.advertising, customers: state.customers,
+    churn: state.churn, cac: state.cac, elasticity: state.elasticity, nodeSpend: state.nodeSpend,
+  };
+  for (const [id, value] of Object.entries(fields)) $(id).value = value;
+}
+
+function readInputs() {
+  state.two = $("two").checked;
+  state.revenue = num($("revenue").value);
+  state.revenue2 = num($("revenue2").value);
+  state.margin = num($("margin").value);
+  state.payroll = num($("payroll").value);
+  state.commissions = num($("commissions").value);
+  state.advertising = num($("advertising").value);
+  state.customers = num($("customers").value);
+  state.churn = num($("churn").value);
+  state.cac = num($("cac").value);
+  state.elasticity = num($("elasticity").value);
+  state.nodeSpend = num($("nodeSpend").value);
+  state.nodes = [...document.querySelectorAll("#nodes-body tr")].map(readNode);
+  state.options = [...document.querySelectorAll("#opts-body tr")].map(readOption);
+}
+
+function readNode(row) {
+  return {
+    name: row.querySelector('[data-field="name"]').value,
+    replacement: row.querySelector('[data-field="repl"]').value,
+    lossPerDay: num(row.querySelector('[data-field="loss"]').value),
+    days: num(row.querySelector('[data-field="days"]').value),
+  };
+}
+
+function readOption(row) {
+  return {
+    name: row.querySelector('[data-field="name"]').value,
+    costPerDay: num(row.querySelector('[data-field="cost"]').value),
+    avoidedLossPerDay: num(row.querySelector('[data-field="loss"]').value),
+    successPct: num(row.querySelector('[data-field="p"]').value),
+  };
+}
+
+function business() {
+  return {
+    revenue: state.revenue,
+    secondRevenue: state.two ? state.revenue2 : null,
+    marginPct: state.margin,
+    salesPayroll: state.payroll,
+    commissions: state.commissions,
+    advertising: state.advertising,
+    customers: state.customers,
+    churnPct: state.churn,
+    cac: state.cac,
+    elasticity: state.elasticity,
+    nodeSpend: state.nodeSpend,
+  };
+}
+
+function setLang(lang) {
+  readInputs();
+  state.lang = lang;
+  state.forceEditors = true;
+  document.documentElement.lang = lang === "ky" ? "ky" : "ru";
+  paintCopy();
+  refresh();
+}
+
+function paintCopy() {
+  document.title = t("title");
+  $("title").textContent = t("title");
+  $("sub").textContent = t("sub");
+  $("example").textContent = t("ex");
+  $("clear").textContent = t("clear");
+  $("calc-b").textContent = t("calc_b");
+  $("lang-ru").classList.toggle("on", state.lang === "ru");
+  $("lang-ky").classList.toggle("on", state.lang === "ky");
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  $("tabs").innerHTML = ["tab_demand","tab_nodes","tab_payback","tab_summary"].map((key, index) =>
+    `<button type="button" class="${state.tab === index ? "on" : ""}" data-tab="${index}">${esc(t(key))}</button>`
+  ).join("");
+  $("tabs").querySelectorAll("button").forEach((button) => {
+    button.onclick = () => { state.tab = Number(button.dataset.tab); paintCopy(); refresh(); };
+  });
+}
+
+function applyB() {
+  const estimate = estimateElasticity(num($("eR1").value), num($("eR2").value), num($("eM1").value), num($("eM2").value));
+  if (estimate == null) {
+    $("b-note").textContent = t("b_need");
+    return;
+  }
+  const shown = estimate.toFixed(2).replace(".", ",");
+  if (estimate >= 0.1 && estimate <= 0.6) {
+    $("elasticity").value = estimate.toFixed(2);
+    $("b-note").textContent = t("b_applied", { b: shown });
+    refresh();
+  } else {
+    $("b-note").textContent = t("b_bad", { b: shown });
+  }
+}
+
+function refresh() {
+  if (document.querySelector("#nodes-body")) readInputs();
+  const inp = business();
+  const demand = demandMetrics(inp);
+  const nodes = assessNodes(state.nodes, totalRevenue(inp), state.nodeSpend);
+  const payback = assessOptions(state.options);
+  const issues = validateBusiness(inp);
+  $("b-val").textContent = `b = ${Number(state.elasticity).toFixed(2).replace(".", ",")}`;
+  $("m-total").textContent = t("l_M_total", { x: fmtInt(marketingSpend(inp)) });
+  $("rev-total").textContent = state.two ? t("l_R_total", { x: fmtInt(totalRevenue(inp)) }) : "";
+  $("lab-r").querySelector("[data-i18n]").dataset.i18n = state.two ? "l_R1" : "l_R";
+  $("lab-r").querySelector("[data-i18n]").textContent = t(state.two ? "l_R1" : "l_R");
+  $("issues").innerHTML = issues.map((key) => msg("r", t(key))).join("");
+  $("strip").innerHTML = [
+    card(fmtPct(demand.ku), t("c_ku2", { a: fmtPct(demand.kuMin), b: fmtPct(demand.kuMax) }), demand.level),
+    card(fmtInt(nodes.uncovered), t("c_unc"), nodes.level),
+    card(payback.rows[0] ? fmtPb(payback.rows[0].payback) : "—", t("c_best"), payback.rows[0]?.level || "n"),
+  ].join("");
+  $("s0").innerHTML = demandHtml(demand, inp);
+  $("s3").innerHTML = summaryHtml(demand, nodes, payback);
+  const rebuild = !document.querySelector("#nodes-body") || state.forceEditors;
+  if (rebuild) {
+    $("s1").innerHTML = nodesHtml(nodes);
+    $("s2").innerHTML = paybackHtml(payback);
+    state.forceEditors = false;
+    bindTables();
+  } else {
+    $("node-out").innerHTML = nodeResults(nodes);
+    $("opt-out").innerHTML = optionResults(payback);
+  }
+  document.querySelectorAll("section").forEach((section, index) => section.classList.toggle("on", index === state.tab));
+  const csvBtn = $("csv");
+  if (csvBtn) csvBtn.onclick = () => downloadCsv(demand, nodes);
+  try { localStorage.setItem("ku-web", JSON.stringify(state)); } catch { /* private mode */ }
+}
+
+function demandHtml(demand, inp) {
+  const cards = [
+    card(fmtPct(demand.ku), t("c_ku"), demand.level),
+    card(fmtPct(demand.kuMin), t("c_min"), "n"),
+    card(fmtPct(demand.kuMax), t("c_max"), "n"),
+    card(fmtInt(demand.minimumSpend), t("c_mmin"), "n"),
+  ].join("");
+  let corridor = "";
+  if (demand.ku != null) {
+    const high = Math.max(demand.ku, demand.kuMin, demand.kuMax, 0.01) * 1.25;
+    const pos = (value) => Math.max(0, Math.min(100, (value / high) * 100));
+    const left = pos(Math.min(demand.kuMin, demand.kuMax));
+    const width = Math.max(0, pos(Math.max(demand.kuMin, demand.kuMax)) - left);
+    corridor = `<div class="bar"><div class="zone" style="left:${left}%;width:${width}%"></div><div class="dot" style="left:${pos(demand.ku)}%"></div></div><p class="note">${esc(t("note1"))}</p>`;
+  }
+  return `<h2>${esc(t("s1t"))}</h2><div class="kpis">${cards}</div>${corridor}${msg(demand.level, message(demand.messageKey, demand.messageArgs))}<h2>${esc(t("pi_title"))}</h2>${profitSvg(inp, demand)}<p class="note">${esc(t("pi_note"))}</p>`;
+}
+
+function nodesHtml(result) {
+  const repl = ["none","part","yes"].map((code) => `<option value="${code}">${esc(t(code === "none" ? "repl_none" : code === "part" ? "repl_part" : "repl_yes"))}</option>`).join("");
+  const rows = state.nodes.map((node) => `<tr>
+    <td><input data-field="name" value="${esc(node.name)}"></td>
+    <td><select data-field="repl">${repl.replace(`value="${node.replacement}"`, `value="${node.replacement}" selected`)}</select></td>
+    <td><input data-field="loss" type="number" min="0" step="100" value="${node.lossPerDay}"></td>
+    <td><input data-field="days" type="number" min="0" step="1" value="${node.days}"></td>
+    <td><button type="button" class="alt" data-remove>×</button></td></tr>`).join("");
+  const body = result.rows.map((row) => `<tr><td>${esc(row.node.name || "—")}</td><td>${esc(t(row.node.replacement === "none" ? "repl_none" : row.node.replacement === "part" ? "repl_part" : "repl_yes"))}</td><td>${fmtInt(row.exposure)}</td></tr>`).join("");
+  return `<h2>${esc(t("s2t"))}</h2>
+    <table><thead><tr><th>${esc(t("th_node"))}</th><th>${esc(t("th_repl"))}</th><th>${esc(t("th_loss"))}</th><th>${esc(t("th_days"))}</th><th></th></tr></thead><tbody id="nodes-body">${rows}</tbody></table>
+    <button type="button" class="alt" id="add-node">+ ${esc(t("th_node"))}</button>
+    <div id="node-out">${nodeResults(result)}</div>`;
+}
+
+function nodeResults(result) {
+  const body = result.rows.map((row) => `<tr><td>${esc(row.node.name || "—")}</td><td>${esc(t(row.node.replacement === "none" ? "repl_none" : row.node.replacement === "part" ? "repl_part" : "repl_yes"))}</td><td>${fmtInt(row.exposure)}</td></tr>`).join("");
+  return `<div class="kpis">${card(fmtPct(result.kuNodes), t("c_nodes"), result.level)}${card(fmtInt(result.uncovered), t("c_unc"), result.uncovered ? "r" : "g")}${card(fmtInt(result.totalExposure), t("c_tot"), "n")}</div>
+    ${body ? `<table><tr><th>${esc(t("th_node"))}</th><th>${esc(t("th_repl"))}</th><th>${esc(t("th_exp"))}</th></tr>${body}</table>` : ""}
+    ${msg(result.level, message(result.messageKey, result.messageArgs))}`;
+}
+
+function paybackHtml(result) {
+  const rows = state.options.map((option) => `<tr>
+    <td><input data-field="name" value="${esc(option.name)}"></td>
+    <td><input data-field="cost" type="number" min="0" step="100" value="${option.costPerDay}"></td>
+    <td><input data-field="loss" type="number" min="0" step="100" value="${option.avoidedLossPerDay}"></td>
+    <td><input data-field="p" type="number" min="0" max="100" step="1" value="${option.successPct}"></td>
+    <td><button type="button" class="alt" data-remove>×</button></td></tr>`).join("");
+  return `<h2>${esc(t("s3t"))}</h2>
+    <table><thead><tr><th>${esc(t("th_opt"))}</th><th>${esc(t("th_cost"))}</th><th>${esc(t("th_avoid"))}</th><th>${esc(t("th_p"))}</th><th></th></tr></thead><tbody id="opts-body">${rows}</tbody></table>
+    <button type="button" class="alt" id="add-opt">+ ${esc(t("th_opt"))}</button>
+    <div id="opt-out">${optionResults(result)}</div>`;
+}
+
+function optionResults(result) {
+  if (!result.rows.length) return msg("y", t("addopts"));
+  const max = Math.max(...result.rows.map((row) => Number.isFinite(row.payback) ? row.payback : 12), 1);
+  return `<table><tr><th>${esc(t("th_opt"))}</th><th>${esc(t("th_cost"))}</th><th>${esc(t("th_eff"))}</th><th>${esc(t("th_pb"))}</th><th>${esc(t("th_limit"))}</th><th>${esc(t("th_safe"))}</th></tr>
+      ${result.rows.map((row) => `<tr><td>${row.isBest ? "★ " : ""}${esc(row.option.name || "—")}</td><td>${fmtInt(row.option.costPerDay)}</td><td>${fmtInt(row.expectedPerDay)}</td><td>${fmtPb(row.payback)}</td><td>${fmtInt(row.limitPrice)}</td><td>${fmtInt(row.safePrice)}</td></tr>`).join("")}</table>
+      ${result.rows.map((row) => `<div class="hbar" style="width:${Math.min(100, ((Number.isFinite(row.payback) ? row.payback : max) / max) * 100)}%;background:${row.level === "g" ? "var(--g)" : row.level === "y" ? "var(--y)" : "var(--r)"}"></div>`).join("")}
+      ${msg(result.level, message("best", result.messageArgs))}${msg(result.level, t(result.messageKey))}${msg("y", t("nothing", { x: fmtInt(result.doNothingMonth) }))}`;
+}
+
+function summaryHtml(demand, nodes, payback) {
+  const nodeMsg = !nodes.rows.length ? t("m_nodesempty") : nodes.uncovered ? t("m_unc4", { n: nodes.uncovered, tot: fmtInt(nodes.totalExposure) }) : t("m_cov4");
+  const rec = payback.rows.length ? msg(payback.level, message("rec", payback.messageArgs)) : "";
+  return `<h2>${esc(t("s4t"))}</h2>${msg(demand.level, message(demand.messageKey, demand.messageArgs))}${msg(nodes.level, nodeMsg)}${rec}<p class="note">${esc(t("rule"))}</p><p class="note">${esc(t("disc"))}</p>
+    <p class="no-print"><button type="button" id="csv">${esc(t("csv"))}</button> <button type="button" class="alt" onclick="window.print()">${esc(t("pdf"))}</button></p>`;
+}
+
+function profitSvg(inp, demand) {
+  const curve = profitCurve(demand.revenue, inp.marginPct, demand.marketingSpend, inp.elasticity);
+  if (curve.length < 2) return `<p class="note">${esc(t("pi_need"))}</p>`;
+  const optimum = optimalMarketingSpend(demand.revenue, inp.marginPct, demand.marketingSpend, inp.elasticity);
+  const currentProfit = contributionProfit(demand.revenue, inp.marginPct, demand.marketingSpend, inp.elasticity, demand.marketingSpend);
+  const optimumProfit = optimum == null ? null : contributionProfit(demand.revenue, inp.marginPct, demand.marketingSpend, inp.elasticity, optimum);
+  const ys = curve.map((point) => point[1]);
+  const maxX = Math.max(...curve.map((point) => point[0]));
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const W = 640, H = 280, pad = 28;
+  const xOf = (value) => pad + (value / (maxX || 1)) * (W - pad * 2);
+  const yOf = (value) => H - pad - ((value - minY) / ((maxY - minY) || 1)) * (H - pad * 2);
+  const path = curve.map((point, index) => `${index ? "L" : "M"}${xOf(point[0]).toFixed(1)},${yOf(point[1]).toFixed(1)}`).join(" ");
+  const now = currentProfit == null ? "" : `<circle cx="${xOf(demand.marketingSpend)}" cy="${yOf(currentProfit)}" r="5" fill="#12263f"><title>${esc(t("pi_now"))}</title></circle>`;
+  const peak = optimum == null || optimumProfit == null ? "" : `<circle cx="${xOf(optimum)}" cy="${yOf(optimumProfit)}" r="6" fill="#1a7f4b"><title>${esc(t("pi_opt"))}</title></circle>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t("pi_title"))}"><path d="${path}" fill="none" stroke="#12263f" stroke-width="3"/>${now}${peak}</svg>`;
+}
+
+function bindTables() {
+  const addNode = $("add-node");
+  const addOpt = $("add-opt");
+  if (addNode) addNode.onclick = () => { readInputs(); state.nodes.push({ name: "", replacement: "none", lossPerDay: 0, days: 0 }); state.forceEditors = true; refresh(); };
+  if (addOpt) addOpt.onclick = () => { readInputs(); state.options.push({ name: "", costPerDay: 0, avoidedLossPerDay: 0, successPct: 50 }); state.forceEditors = true; refresh(); };
+  document.querySelectorAll("[data-remove]").forEach((button) => {
+    button.onclick = () => {
+      const row = button.closest("tr");
+      const body = row.parentElement;
+      const index = [...body.children].indexOf(row);
+      readInputs();
+      if (body.id === "nodes-body") state.nodes.splice(index, 1);
+      else state.options.splice(index, 1);
+      state.forceEditors = true;
+      refresh();
+    };
+  });
+  document.querySelectorAll("#nodes-body input, #nodes-body select, #opts-body input").forEach((field) => {
+    field.addEventListener("input", refresh);
+    field.addEventListener("change", refresh);
+  });
+}
+
+function downloadCsv(demand, nodes) {
+  const rows = [
+    [t("csv_metric"), t("csv_value")],
+    [t("csv_revenue"), fmtInt(demand.revenue)],
+    [t("csv_marketing"), fmtInt(demand.marketingSpend)],
+    [t("csv_ku"), fmtPct(demand.ku)],
+    [t("csv_min"), fmtPct(demand.kuMin)],
+    [t("csv_max"), fmtPct(demand.kuMax)],
+    [t("csv_nodes"), fmtPct(nodes.kuNodes)],
+    [t("csv_unc"), fmtInt(nodes.uncovered)],
+    [t("csv_exposure"), fmtInt(nodes.totalExposure)],
+  ];
+  const blob = new Blob(["\ufeff" + rows.map((row) => row.join(";")).join("\n") + "\n"], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "ustoychivost.csv";
+  link.click();
+}
+
+function message(key, args) {
+  const prepared = {};
+  for (const [name, value] of Object.entries(args || {})) {
+    if (["x", "exp", "tot"].includes(name)) prepared[name] = fmtInt(value);
+    else if (name === "pb") prepared[name] = fmtPb(value);
+    else prepared[name] = value;
+  }
+  return t(key, prepared);
+}
+
+function card(value, label, level) {
+  const color = level === "g" ? "var(--g)" : level === "y" ? "var(--y)" : level === "r" ? "var(--r)" : "#9aa5b1";
+  return `<div class="card" style="border-left-color:${color}"><b>${esc(value)}</b><span>${esc(label)}</span></div>`;
+}
+
+function msg(level, text) {
+  return `<div class="msg ${level}">${esc(text)}</div>`;
+}
+
+function num(value) {
+  const parsed = parseFloat(String(value).replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+boot();
+</script>
+</body>
+</html>

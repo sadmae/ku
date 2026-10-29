@@ -1,0 +1,31 @@
+name = "ku"
+account_id = "e4d83991d6d12186ea8ae4f0b4477c0c"
+main = "worker.js"
+compatibility_date = "2026-10-22"
+workers_dev = true
+preview_urls = true
+
+[[routes]]
+pattern = "www.sadmae.app"
+custom_domain = true
+
+[[routes]]
+pattern = "sadmae.app"
+custom_domain = true
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+html_handling = "none"
+not_found_handling = "none"
+run_worker_first = true
+
+[[kv_namespaces]]
+binding = "PROJECTS"
+id = "29fb2ee2e5184d0c8d5f87b09d1e8118"
+
+# Non-main builds run `wrangler preview`, which requires this block.
+# The preview reads the same public project list. Admin secrets stay on production.
+[[previews.kv_namespaces]]
+binding = "PROJECTS"
+id = "29fb2ee2e5184d0c8d5f87b09d1e8118"
